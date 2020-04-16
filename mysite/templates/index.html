@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}资产总表{% endblock %}
+
+{% block css %}
+
+<!-- DataTables -->
+  <link rel="stylesheet" href="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+  <!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+  <link rel="stylesheet" href="{% static 'dist/css/skins/_all-skins.min.css' %}">
+
+{% endblock %}
+
+{% block content %}
+
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        资产总表
+        <small>assets list</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>
+        <li class="active">资产总表</li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+    <div class="row">
+    <div class="col-xs-12">
+
+      <div class="box">
+        <div class="box-header">
+          <h3 class="box-title">资产总表<small>(不含软件)</small></h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+          <table id="asset-table" class="table table-bordered table-striped">
+            <thead>
+            <tr>
+              <th>序号</th>
+              <th>资产类型</th>
+              <th>资产名称</th>
+              <th>SN</th>
+              <th>状态</th>
+              <th>更新日期</th>
+            </tr>
+            </thead>
+            <tbody>
+
+                {% for asset in assets %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  {% if asset.asset_type == 'server' %}
+                      <td class="text-green text-bold">{{ asset.get_asset_type_display }}</td>
+                  {% elif asset.asset_type == "networkdevice" %}
+                      <td class="text-yellow text-\old">{{ asset.get_asset_type_display }}</td>
+                  {% elif asset.asset_type == "storagedevice" %}
+                      <td class="text-blue text-bold">{{ asset.get_asset_type_display }}</td>
+                  {% elif asset.asset_type == "securitydevice" %}
+                      <td class="text-red text-bold">{{ asset.get_asset_type_display }}</td>
+                  {% endif %}
+                    {% if asset.asset_type == 'server' %}
+                        <td><a href="#">{{ asset.name }}</a></td>
+                    {% else %}
+                        <td>{{ asset.name }}</td>
+                    {% endif %}
+                  <td>{{ asset.sn }}</td>
+                    {% if asset.status == 0 %}
+                      <td><label class="label label-success">{{ asset.get_status_display }}</label></td>
+                    {% elif asset.status == 1 %}
+                      <td><label class="label label-warning">{{ asset.get_status_display }}</label></td>
+                    {% elif asset.status == 2 %}
+                      <td><label class="label label-default">{{ asset.get_status_display }}</label></td>
+                    {% elif asset.status == 3 %}
+                      <td><label class="label label-danger">{{ asset.get_status_display }}</label></td>
+                    {% elif asset.status == 4 %}
+                      <td><label class="label label-info">{{ asset.get_status_display }}</label></td>
+                    {% endif %}
+                  <td>{{ asset.m_time|date:"Y/m/d [H:m:s]" }}</td>
+                </tr>
+                {% empty %}
+                  <tr>没有数据！</tr>
+                {% endfor %}
+
+            </tbody>
+          </table>
+
+
+        </div>
+        <!-- /.box-body -->
+
+
+      </div>
+      <!-- /.box -->
+    </div>
+    <!-- /.col -->
+    </div>
+    <!-- /.row -->
+    </section>
+    <div>
+            <button type="button" class="btn  btn-success" onclick="ck()">you do</button>
+    </div>
+
+
+
+{% endblock %}
+
+{% block script %}
+    <!-- DataTables -->
+    <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js' %}"></script>
+    <!-- FastClick -->
+    <script src="{% static 'bower_components/fastclick/lib/fastclick.js' %}"></script>
+    <!-- AdminLTE App -->
+    <script src="{% static 'dist/js/app.min.js' %}"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="{% static 'dist/js/demo.js' %}"></script>
+    <script src="js/jquery-1.11.3.min.js "></script>
+		<!-- Include all compiled plugins (below), or include individual files as needed -->
+		<script src="js/bootstrap.min.js "></script>
+    <!-- page script -->
+
+    <script>
+      $(function () {
+        $('#assets_table').DataTable({
+          "paging": true,       <!-- 允许分页 -->
+          "lengthChange": true, <!-- 允许改变每页显示的行数 -->
+          "searching": true,    <!-- 允许内容搜索 -->
+          "ordering": true,     <!-- 允许排序 -->
+          "info": true,         <!-- 显示信息 -->
+          "autoWidth": false    <!-- 固定宽度 -->
+        });
+      });
+
+
+		$(function(){
+			function initTableCheckbox() {
+				var $thr = $('table thead tr');
+				var $checkAllTh = $('<th><input type="checkbox" id="checkAll" name="checkAll" /></th>');
+				/*将全选/反选复选框添加到表头最前，即增加一列*/
+				$thr.prepend($checkAllTh);
+				/*“全选/反选”复选框*/
+				var $checkAll = $thr.find('input');
+				$checkAll.click(function(event){
+					/*将所有行的选中状态设成全选框的选中状态*/
+					$tbr.find('input').prop('checked',$(this).prop('checked'));
+					/*并调整所有选中行的CSS样式*/
+					if ($(this).prop('checked')) {
+						$tbr.find('input').parent().parent().addClass('warning');
+					} else{
+						$tbr.find('input').parent().parent().removeClass('warning');
+					}
+					/*阻止向上冒泡，以防再次触发点击操作*/
+					event.stopPropagation();
+				});
+				/*点击全选框所在单元格时也触发全选框的点击操作*/
+				$checkAllTh.click(function(){
+					$(this).find('input').click();
+				});
+				var $tbr = $('table tbody tr');
+				var $checkItemTd = $('<td><input type="checkbox" name="checkItem" /></td>');
+				/*每一行都在最前面插入一个选中复选框的单元格*/
+				$tbr.prepend($checkItemTd);
+				/*点击每一行的选中复选框时*/
+				$tbr.find('input').click(function(event){
+					/*调整选中行的CSS样式*/
+					$(this).parent().parent().toggleClass('warning');
+					/*如果已经被选中行的行数等于表格的数据行数，将全选框设为选中状态，否则设为未选中状态*/
+					$checkAll.prop('checked',$tbr.find('input:checked').length == $tbr.length ? true : false);
+					/*阻止向上冒泡，以防再次触发点击操作*/
+					event.stopPropagation();
+				});
+				/*点击每一行时也触发该行的选中操作*/
+				$tbr.click(function(){
+					$(this).find('input').click();
+				});
+			}
+			initTableCheckbox();
+		});/*
+		function getrow() {
+		    var  a = document.getElementsByName("checkItem");
+		    for (var i=0; i<a.length; i++){
+		        if(a[i].checked){
+		            var checkrow= a[i];
+		            var trow = checkrow.parentNode.parentNode;
+                }
+            }
+
+        alert(trow)
+        }
+        function tg(){
+            $("#assets_table").find(":checkbox:checked").each(function () {
+            var va= $(this).parent("tr").text();
+            alert(va)
+
+        })
+
+        }
+    $(function () {
+            $("button[tye=button]").click(function () {
+                //获取选中的数据组
+                var array = $("table input[type=checkbox]:checked").map(function () {
+                    return { "cell2": $.trim($(this).closest("tr").find("td:eq(2)").text()), "cell4": $.trim($(this).closest("tr").find("td:eq(4)").text()) };
+                }).get();
+
+                $.each(array, function (i, d) {
+                    alert(d.cell2 + "|" + d.cell4);
+                })
+            })
+        })*/
+    function ck(){
+    var tbodyObj = document.getElementById('asset-table');
+        $("table :checkbox").each(function(key,value){
+            if($(value).prop('checked')){
+                var rw =tbodyObj.rows[key].cells[1].innerHTML
+                alert(rw);
+                alert(tbodyObj.rows[key].cells[2].innerHTML);
+            }
+        })
+    }
+
+
+
+    </script>
+{% endblock %}
